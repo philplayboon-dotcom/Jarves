@@ -11,8 +11,10 @@ try:
     from jarves.application.session import SessionManager
     from jarves.domain.models import ChatMessage, ChatRequest, ContextPacket
     from jarves.infrastructure.providers.fake import FakeProvider
+    from jarves.infrastructure.providers.ollama import OllamaProvider
     from jarves.ui.event_bridge import EventBridge
     from jarves.ui.main_window import MainWindow
+    from jarves.ui.settings_dialog import ModelSettings
     from jarves.ui.workers import InferenceWorker
 except ModuleNotFoundError:
     # Fallback fuer direkten Skriptaufruf in IDE ohne gesetzten PYTHONPATH
@@ -22,8 +24,10 @@ except ModuleNotFoundError:
     from jarves.application.session import SessionManager
     from jarves.domain.models import ChatMessage, ChatRequest, ContextPacket
     from jarves.infrastructure.providers.fake import FakeProvider
+    from jarves.infrastructure.providers.ollama import OllamaProvider
     from jarves.ui.event_bridge import EventBridge
     from jarves.ui.main_window import MainWindow
+    from jarves.ui.settings_dialog import ModelSettings
     from jarves.ui.workers import InferenceWorker
 
 if TYPE_CHECKING:
@@ -48,12 +52,26 @@ class JarvesApplication:
 
         self._active_worker: InferenceWorker | None = None
 
+        # Standardeinstellungen ermitteln
+        provider_type = "ollama" if isinstance(self.provider, OllamaProvider) else "fake"
+        endpoint = (
+            getattr(self.provider, "_endpoint", "http://127.0.0.1:11434")
+            if provider_type == "ollama"
+            else "http://127.0.0.1:11434"
+        )
+        self.settings = ModelSettings(
+            provider_type=provider_type,
+            endpoint=endpoint,
+            model="fake-model" if provider_type == "fake" else "qwen2.5-coder:1.5b",
+        )
+
         self._connect_signals()
         self._initialize_state()
 
     def _connect_signals(self) -> None:
         self.chat_panel.send_requested.connect(self.handle_send_request)
         self.chat_panel.cancel_requested.connect(self.handle_cancel_request)
+        self.main_window.settings_changed.connect(self.apply_settings)
 
     def _initialize_state(self) -> None:
         # Initialisiere erste Sitzung
@@ -63,13 +81,39 @@ class JarvesApplication:
         # Initialisiere Modell-Anzeige
         try:
             models = self.provider.list_models()
-            model_name = models[0] if models else "fake-model"
+            model_name = models[0] if models else self.settings.model
         except Exception:
-            model_name = "unbekannt"
+            model_name = self.settings.model
 
+        self.settings = ModelSettings(
+            provider_type=self.settings.provider_type,
+            endpoint=self.settings.endpoint,
+            model=model_name,
+        )
+        self.main_window.set_settings(self.settings)
         self.chat_panel.set_model_name(model_name)
+        mode_label = (
+            "Ollama" if self.settings.provider_type == "ollama" else "Demo-Modus mit Fake-Provider"
+        )
         self.chat_panel.append_system_notice(
-            f"Jarves-AI gestartet (Demo-Modus mit Fake-Provider). Sitzung: {session_id[:8]}..."
+            f"Jarves-AI gestartet ({mode_label}). Sitzung: {session_id[:8]}..."
+        )
+
+    def apply_settings(self, settings: ModelSettings) -> None:
+        """Wendet geaenderte Modell- und Provider-Einstellungen an."""
+        self.settings = settings
+        self.main_window.set_settings(settings)
+
+        if settings.provider_type == "ollama":
+            self.provider = OllamaProvider(endpoint=settings.endpoint)
+        else:
+            self.provider = FakeProvider()
+
+        self.chat_panel.set_model_name(settings.model)
+        self.main_window.status_bar.showMessage(f"Modell auf '{settings.model}' gesetzt.", 3000)
+        mode_label = "Lokales Ollama" if settings.provider_type == "ollama" else "Demo-Modus"
+        self.chat_panel.append_system_notice(
+            f"Einstellungen aktualisiert: {settings.model} ({mode_label})"
         )
 
     def handle_send_request(self, text: str) -> None:
@@ -100,8 +144,7 @@ class JarvesApplication:
             estimated_prompt_tokens=len(text.encode("utf-8")),
             warnings=(),
         )
-        models = self.provider.list_models()
-        model_name = models[0] if models else "fake-model"
+        model_name = self.settings.model or "fake-model"
         request = ChatRequest(packet=packet, model=model_name)
 
         # Worker starten
@@ -149,7 +192,7 @@ def run_app(argv: list[str] | None = None) -> int:
         argv = sys.argv[1:]
 
     if "--version" in argv:
-        sys.stdout.write("Jarves-AI v0.1.0 (Phase M1: Fake UI Demo)\n")
+        sys.stdout.write("Jarves-AI v0.1.0\n")
         return 0
 
     app, window, _ = create_app()
