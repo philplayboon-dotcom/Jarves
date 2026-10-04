@@ -238,3 +238,91 @@ def test_app_integration_apply_settings(qapp: QApplication) -> None:
     assert isinstance(app_instance.provider, FakeProvider)
     assert app_instance.settings.model == "fake-model"
     assert app_instance.chat_panel.lbl_model_info.text() == "Modell: fake-model"
+
+
+@pytest.mark.ui
+def test_settings_dialog_check_connection_ollama_empty_models(qapp: QApplication) -> None:
+    """Prueft Rueckmeldung wenn Ollama erreichbar ist aber keine Modelle geladen sind."""
+    mock_provider = MagicMock(spec=OllamaProvider)
+    mock_provider.list_models.return_value = ()
+    ollama_factory = MagicMock(return_value=mock_provider)
+
+    dialog = SettingsDialog(ollama_provider_factory=ollama_factory)
+    dialog.rb_ollama.setChecked(True)
+    dialog.edit_endpoint.setText("http://127.0.0.1:11434")
+
+    success = dialog.check_connection()
+    assert success is True
+    assert "keine Modelle auf Ollama gefunden" in dialog.lbl_status.text()
+    assert "ollama pull" in dialog.lbl_status.text()
+
+
+@pytest.mark.ui
+def test_settings_dialog_save_whitespace_model_fallback(qapp: QApplication) -> None:
+    """Prueft Fallback auf Standardmodell wenn Modellname nur Leerzeichen enthaelt."""
+    dialog = SettingsDialog()
+    dialog.rb_ollama.setChecked(True)
+    dialog.combo_model.setEditText("   ")
+
+    settings = dialog.get_settings()
+    assert settings.model == "qwen2.5-coder:1.5b"
+
+
+@pytest.mark.ui
+def test_settings_dialog_provider_switch_preserves_or_updates(qapp: QApplication) -> None:
+    """Prueft Wechsel zwischen Fake und Ollama und die UI-Aktivierung."""
+    dialog = SettingsDialog()
+    dialog.rb_fake.setChecked(True)
+    assert not dialog.edit_endpoint.isEnabled()
+
+    dialog.rb_ollama.setChecked(True)
+    assert dialog.edit_endpoint.isEnabled()
+    assert dialog.lbl_endpoint.isEnabled()
+    assert dialog.lbl_endpoint_hint.isEnabled()
+
+
+@pytest.mark.ui
+def test_settings_dialog_save_empty_endpoint_fallback(qapp: QApplication) -> None:
+    """Prueft Fallback auf Standard-Endpoint bei leerem Endpoint-Feld."""
+    dialog = SettingsDialog()
+    dialog.rb_ollama.setChecked(True)
+    dialog.edit_endpoint.setText("")
+
+    settings = dialog.get_settings()
+    assert settings.endpoint == "http://127.0.0.1:11434"
+
+
+@pytest.mark.ui
+def test_settings_dialog_reject_credentials_in_endpoint(qapp: QApplication) -> None:
+    """Prueft Ablehnung von Credentials im Endpoint."""
+    dialog = SettingsDialog()
+    dialog.rb_ollama.setChecked(True)
+    dialog.edit_endpoint.setText("http://admin:secret@127.0.0.1:11434")
+
+    success = dialog.check_connection()
+    assert success is False
+    assert "Ungueltiger Endpunkt" in dialog.lbl_status.text()
+
+
+@pytest.mark.ui
+def test_settings_dialog_reject_query_params_in_endpoint(qapp: QApplication) -> None:
+    """Prueft Ablehnung von Query-Parametern im Endpoint."""
+    dialog = SettingsDialog()
+    dialog.rb_ollama.setChecked(True)
+    dialog.edit_endpoint.setText("http://127.0.0.1:11434?param=1")
+
+    success = dialog.check_connection()
+    assert success is False
+    assert "Ungueltiger Endpunkt" in dialog.lbl_status.text()
+
+
+@pytest.mark.ui
+def test_settings_dialog_reject_fragment_in_endpoint(qapp: QApplication) -> None:
+    """Prueft Ablehnung von URL-Fragmenten im Endpoint."""
+    dialog = SettingsDialog()
+    dialog.rb_ollama.setChecked(True)
+    dialog.edit_endpoint.setText("http://127.0.0.1:11434#section")
+
+    success = dialog.check_connection()
+    assert success is False
+    assert "Ungueltiger Endpunkt" in dialog.lbl_status.text()
