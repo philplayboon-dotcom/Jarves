@@ -7,12 +7,24 @@ from typing import TYPE_CHECKING
 
 from PySide6.QtWidgets import QApplication
 
-from jarves.application.session import SessionManager
-from jarves.domain.models import ChatMessage, ChatRequest, ContextPacket
-from jarves.infrastructure.providers.fake import FakeProvider
-from jarves.ui.event_bridge import EventBridge
-from jarves.ui.main_window import MainWindow
-from jarves.ui.workers import InferenceWorker
+try:
+    from jarves.application.session import SessionManager
+    from jarves.domain.models import ChatMessage, ChatRequest, ContextPacket
+    from jarves.infrastructure.providers.fake import FakeProvider
+    from jarves.ui.event_bridge import EventBridge
+    from jarves.ui.main_window import MainWindow
+    from jarves.ui.workers import InferenceWorker
+except ModuleNotFoundError:
+    # Fallback fuer direkten Skriptaufruf in IDE ohne gesetzten PYTHONPATH
+    from pathlib import Path
+
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+    from jarves.application.session import SessionManager
+    from jarves.domain.models import ChatMessage, ChatRequest, ContextPacket
+    from jarves.infrastructure.providers.fake import FakeProvider
+    from jarves.ui.event_bridge import EventBridge
+    from jarves.ui.main_window import MainWindow
+    from jarves.ui.workers import InferenceWorker
 
 if TYPE_CHECKING:
     from jarves.domain.ports import ModelProvider
@@ -143,3 +155,7 @@ def run_app(argv: list[str] | None = None) -> int:
     app, window, _ = create_app()
     window.show()
     return int(app.exec())
+
+
+if __name__ == "__main__":
+    raise SystemExit(run_app())
