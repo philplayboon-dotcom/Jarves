@@ -36,17 +36,17 @@ Die Tabelle ist ein Lane-Vorschlag. Abhängigkeiten aus Roadmap.md gelten immer.
 
 | Task | Phase | Owner | Dependencies | Größe | Status |
 |---|---|---|---|---|---|
-| T01 | M0 | coordinator | — | S | DONE |
-| T02 | M0 | coordinator | T01 | M | DONE |
-| T03 | M1 | provider | T02 | S | DONE |
-| T04 | M1 | ui | T02 | M | DONE |
-| T05 | M1 | core | T02 | S | DONE |
-| T06 | M1 | ui | T03,T04,T05 | M | DONE |
-| T07 | M1 | coordinator | T06 | S | DONE |
-| T08 | M2 | provider | T02 | M | DONE |
-| T09 | M2 | provider | T08 | M | DONE |
-| T10 | M2 | ui | T04,T08 | S | DONE |
-| T11 | M2 | coordinator | T07,T09,T10 | S | DONE |
+| T01 | M0 | coordinator | — | S | TODO |
+| T02 | M0 | coordinator | T01 | M | TODO |
+| T03 | M1 | provider | T02 | S | TODO |
+| T04 | M1 | ui | T02 | M | TODO |
+| T05 | M1 | core | T02 | S | TODO |
+| T06 | M1 | ui | T03,T04,T05 | M | TODO |
+| T07 | M1 | coordinator | T06 | S | TODO |
+| T08 | M2 | provider | T02 | M | TODO |
+| T09 | M2 | provider | T08 | M | TODO |
+| T10 | M2 | ui | T04,T08 | S | TODO |
+| T11 | M2 | coordinator | T07,T09,T10 | S | TODO |
 | T12 | M3 | core | T02 | M | TODO |
 | T13 | M3 | core | T02 | M | TODO |
 | T14 | M3 | ui | T04,T12,T13 | M | TODO |

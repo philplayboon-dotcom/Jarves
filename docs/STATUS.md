@@ -1,37 +1,25 @@
 # Projektstatus
 
-Stand: 04.10.2026. Phase: M2 abgeschlossen (Gate G2 erreicht).
+Stand: 04.10.2026. Phase: M0, noch nicht begonnen.
 
 ## Tatsächlich vorhanden
 
-- Grundgerüst mit `pyproject.toml`, `src/jarves/`, `tests/` und `scripts/check_links.py`.
-- Domaenen-Vertraege (`models.py`, `ports.py`, `errors.py`, `cancellation.py`) in `src/jarves/domain/`.
-- Deterministischer `FakeProvider` mit Streaming-, Abbruch- und Fehlerszenarien in `src/jarves/infrastructure/providers/fake.py`.
-- Echter `OllamaProvider` mit NDJSON-Streaming, Loopback-Policy, Timeouts, Cancellation und Error-Mapping in `src/jarves/infrastructure/providers/ollama.py`.
-- Session- und Request-Lifecycle (`SessionManager`) in `src/jarves/application/session.py`.
-- PySide6-Chatlayout (`ChatPanel`, `MainWindow`) und Einstellungsdialog (`SettingsDialog`) mit Provider-/Modell-Umschaltung in `src/jarves/ui/`.
-- Hintergrundworker (`InferenceWorker`) und Signal-Event-Bridge (`EventBridge`) in `src/jarves/ui/`.
-- Composition Root in `src/jarves/app.py` und Einstiegspunkt `src/jarves/__main__.py`.
-- 102 automatisierte Tests grün (Default-Suite: Offline-Unit-, Adapter- und UI-Tests).
-- 1 Live-Integrationstest gegen lokalen Ollama-Dienst (`qwen2.5-coder:3b`) erfolgreich ausgeführt.
-- Linkprüfung erfolgreich ausgeführt.
+Markdown-Planung und OpenCode-Agentenprofile. Keine Anwendung implementiert, keine Pakete installiert, keine Tests ausgeführt, keine Hardwaremessung erfolgt.
 
 ## Nächste Schritte
 
-1. Wave 3 starten (Phase M3: Projekt- und Fehlerkontext).
-2. T12 (ProjectReader mit Pfadsicherheit, Traversal-Schutz, Ausschlussregeln).
-3. T13 (ContextBuilder mit Budgetierung, Prompt-Assembly, Priorisierung).
-4. T14 (Kontextpanel, Dateiauswahl, Fehlertextfeld, Vorschau in UI).
-5. T15 (Security- & Privacy-Tests für Pfade und Kontext).
-6. T16 (M3-Integration & Gate G3 Abnahme).
+1. OpenCode-Version/Provider prüfen.
+2. T01 planen und nach Freigabe Bootstrap umsetzen.
+3. T02 Contracts implementieren und Freeze abnehmen.
+4. Danach Wave 1 starten.
 
 ## Gates
 
 | Gate | Status | Nachweis |
 |---|---|---|
-| G0 Bootstrap/Contract Freeze | bestanden | T01 + T02 abgeschlossen; 10 Tests grün; keine Fremdabhängigkeiten in Domain |
-| G1 Fake UI | bestanden | T03–T07 abgeschlossen; 47 Tests grün; Chat, Streaming, Cancel & Fehler ohne Ollama demonstriert |
-| G2 Ollama | bestanden | T08–T11 abgeschlossen; 102 Adapter-/UI-Tests grün + Live-Ollama-Test mit qwen2.5-coder:3b bestanden |
+| G0 Bootstrap/Contract Freeze | offen | keiner |
+| G1 Fake UI | offen | keiner |
+| G2 Ollama | offen | keiner |
 | G3 Kontext/Privacy | offen | keiner |
 | G4 MVP | offen | keiner |
 | G5 Hardware/Qualität | offen | keiner |
@@ -40,18 +28,7 @@ Stand: 04.10.2026. Phase: M2 abgeschlossen (Gate G2 erreicht).
 
 ## Aufgabenstatus
 
-- T01: DONE (Bootstrap Grundgerüst, pytest, ruff, link-check validiert).
-- T02: DONE (Contracts, Models, Protocols, Errors, CancellationToken implementiert & getestet).
-- T03: DONE (FakeProvider mit deterministischem Streaming, Fehlern und Cancel).
-- T04: DONE (ChatPanel, MainWindow, Signale & Zustandssteuerung).
-- T05: DONE (SessionManager, Zustandsübergänge, UUID-Lifecycle).
-- T06: DONE (InferenceWorker, EventBridge, Stale-Event-Filter).
-- T07: DONE (Composition Root app.py, Gate G1 verifiziert).
-- T08: DONE (Ollama list_models & Chat-NDJSON mit httpx).
-- T09: DONE (Ollama Endpointpolicy, Timeouts, Cancellation, Error-Mapping).
-- T10: DONE (SettingsDialog, Modellwahl, Verfügbarkeitsprüfung in UI).
-- T11: DONE (Ollama-Integration & Windows Live-Smoke-Test bestanden).
-- T12–T32: TODO.
+Alle T01–T32 sind TODO. Coordinator pflegt hier pro Abschluss ID, Status, Nachweis und offene Punkte. Andere Agenten berichten über Handoff, ohne diese zentrale Datei gleichzeitig zu ändern.
 
 ## Risiken
 
